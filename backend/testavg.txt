@@ -1,0 +1,83 @@
+1) 
+STANDING:
+Average X: 0.1416
+Average Y: -0.0789
+Average Z: 0.9182
+
+BOWING:
+Average X: 0.1831
+Average Y: -0.0187
+Average Z: 0.9146
+
+PROSTRATING:
+Average X: 0.2339
+Average Y: -0.1110
+Average Z: 1.0460
+
+SITTING:
+Average X: 0.2327
+Average Y: -0.0968
+Average Z: 1.0464
+
+2) 
+STANDING:
+Average X: -0.2457
+Average Y: -0.0589
+Average Z: 0.9728
+
+BOWING:
+Average X: -0.2509
+Average Y: -0.0566
+Average Z: 0.9732
+
+PROSTRATING:
+Average X: -0.2496
+Average Y: -0.0596
+Average Z: 0.9754
+
+SITTING:
+Average X: -0.2397
+Average Y: -0.0596
+Average Z: 0.9747
+
+3)
+STANDING:
+Average X: -0.3066
+Average Y: -0.2880
+Average Z: 0.9294
+
+BOWING:
+Average X: -0.3268
+Average Y: -0.4016
+Average Z: 0.9134
+
+SITTING:
+Average X: -0.4711
+Average Y: -0.2573
+Average Z: 0.8764
+
+PROSTRATING:
+Average X: -0.4548
+Average Y: -0.2043
+Average Z: 0.8798
+
+4) 
+STANDING (combining all standing positions):
+Average X: 0.2816
+Average Y: 0.0336
+Average Z: 0.9592
+
+BOWING:
+Average X: 0.2888
+Average Y: 0.0283
+Average Z: 0.9555
+
+PROSTRATING:
+Average X: 0.2422
+Average Y: 0.0174
+Average Z: 0.9597
+
+SITTING:
+Average X: 0.2810
+Average Y: 0.0436
+Average Z: 0.9489
