@@ -5,11 +5,18 @@ from statistics import mean, stdev
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from collections import deque
+import csv
+import os
 plt.style.use('dark_background')  # Better visibility
 plt.ion()  # Enable interactive mode
 
 class KhushuMonitor:
     def __init__(self):
+        # Add CSV related attributes
+        self.test_number = 1
+        self.csv_filename = 'khushu_results.csv'
+        self.max_tests = 10
+        
         print("Looking for Muse EEG stream...")
         streams = resolve_streams()
         
@@ -206,10 +213,35 @@ class KhushuMonitor:
         
         return khushu_percentage
     
-    def start_monitoring(self):
-        self.calibrate()
+    def save_results_to_csv(self):
+        """Save average khushu index to CSV file"""
+        avg_khushu = mean(self.khushu_values) if self.khushu_values else 0
         
-        print("\nStarting Khushu monitoring...\n")
+        # Create CSV with headers if it doesn't exist
+        if not os.path.exists(self.csv_filename):
+            with open(self.csv_filename, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(['Test Number', 'Average Khushu Index'])
+        
+        # Append results
+        with open(self.csv_filename, 'a', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow([f'Test {self.test_number}', f'{avg_khushu:.2f}'])
+    
+    def start_monitoring(self):
+        if self.test_number > self.max_tests:
+            print(f"Maximum number of tests ({self.max_tests}) reached!")
+            return
+            
+        self.calibrate()
+        print(f"\nStarting Khushu monitoring... (Test {self.test_number})\n")
+        
+        # Reset values for new test
+        self.times = []
+        self.khushu_values = []
+        for band in self.band_values:
+            self.band_values[band] = []
+        
         window_size = 256
         eeg_buffer = []
         start_time = time.time()
@@ -261,8 +293,11 @@ class KhushuMonitor:
                 
         except KeyboardInterrupt:
             print("\nStopping Khushu monitoring...")
+            self.save_results_to_csv()
+            self.test_number += 1
             plt.close('all')
 
 if __name__ == "__main__":
     monitor = KhushuMonitor()
-    monitor.start_monitoring() 
+    while monitor.test_number <= monitor.max_tests:
+        monitor.start_monitoring() 
