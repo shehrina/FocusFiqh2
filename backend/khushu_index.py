@@ -31,7 +31,10 @@ class KhushuMonitor:
         print("✅ Connected to EEG stream!")
         
         # Initialize CSV logging
+        self.test_number = 1
         self.csv_filename = "khushu_results.csv"
+        self.detailed_csv_filename = "current_session_details.csv"
+        self.max_tests = 10
         
         # Get the last test number from CSV
         try:
@@ -251,6 +254,24 @@ class KhushuMonitor:
             writer = csv.writer(f)
             writer.writerow([f'Test {self.test_number}', f'{avg_khushu:.2f}'])
     
+    def save_detailed_data_to_csv(self, current_time, powers, khushu_percentage):
+        """Save detailed time-series data to CSV, overwriting previous session data"""
+        # If this is the first data point, create/overwrite the file with headers
+        if current_time == self.times[0]:  # First data point of the session
+            mode = 'w'  # overwrite mode
+        else:
+            mode = 'a'  # append mode
+        
+        with open(self.detailed_csv_filename, mode, newline='') as f:
+            writer = csv.writer(f)
+            if mode == 'w':  # Only write headers when creating new file
+                writer.writerow(['Time (s)', 'Alpha Power', 'Khushu Index'])
+            writer.writerow([
+                f'{current_time:.2f}',
+                f'{powers["alpha"]:.2f}',
+                f'{khushu_percentage:.2f}'
+            ])
+    
     def start_monitoring(self):
         self.calibrate()
         
@@ -279,7 +300,11 @@ class KhushuMonitor:
                     khushu_percentage = self.calculate_khushu_percentage(powers)
                     
                     # Update data for plotting
-                    self.times.append(current_time - start_time)
+                    elapsed_time = current_time - start_time
+                    self.times.append(elapsed_time)
+                    
+                    # Save detailed data
+                    self.save_detailed_data_to_csv(elapsed_time, powers, khushu_percentage)
                     
                     for band, power in powers.items():
                         if band not in self.band_values:
