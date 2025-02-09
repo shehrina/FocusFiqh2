@@ -4,41 +4,212 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Khushu Level</title>
+  <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet" />
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
+        integrity="sha512-M5RPOpQKiDZQzK7cAbvjD+4snfnn7HZ8jz/kFTqWqJ8X19hpA6kdbTV5l1/43Ix48Yb8DUcxNV9c6IjdXq4eNQ==" 
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- External CSS -->
   <link rel="stylesheet" href="css/khushu-level.css" />
+  <style>
+    /* Base styling */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #8e44ad, #9b59b6);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+    }
+    /* Main container */
+    .main-container {
+      width: 100%;
+      max-width: 500px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      position: relative;
+      backdrop-filter: blur(10px);
+    }
+    /* Header with dropdown navigation */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .logo h1 {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .menu {
+      position: relative;
+      margin-left: auto;
+    }
+    .menu .menu-icon {
+      cursor: pointer;
+      font-size: 24px;
+    }
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 40px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      overflow: hidden;
+      z-index: 10;
+      min-width: 200px;
+    }
+    .dropdown-menu a {
+      display: block;
+      padding: 10px 15px;
+      text-decoration: none;
+      color: #333;
+      border-bottom: 1px solid #ddd;
+    }
+    .dropdown-menu a:last-child {
+      border-bottom: none;
+    }
+    .dropdown-menu a:hover {
+      background-color: #eee;
+    }
+    /* Page Title */
+    h2 {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    /* Circular progress bar */
+    .progress-circle {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: conic-gradient(#c084fc 0% 0%, rgba(255, 255, 255, 0.15) 0% 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 20px auto;
+      position: relative;
+      transition: background 0.5s ease;
+    }
+    .progress-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: white;
+      position: absolute;
+    }
+    /* Sections for prayer stages */
+    .sections {
+      margin-top: 30px;
+      text-align: left;
+    }
+    .section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .section-icon {
+      font-size: 30px;
+      width: 40px;
+      text-align: center;
+    }
+    .section h3 {
+      font-size: 18px;
+      font-weight: bold;
+      margin: 0;
+    }
+    .section p {
+      font-size: 14px;
+      color: #e0e0e0;
+      margin: 0;
+    }
+  </style>
 </head>
 <body>
   <div class="main-container">
     <header>
-      <div class="logo">
-        <h1>Khushu</h1>
+      <div class="logo"><h1>Khushu</h1></div>
+      <div class="menu">
+        <span class="menu-icon" id="menuIcon">☰</span>
+        <div class="dropdown-menu" id="dropdownMenu">
+          <a href="index.html">Home</a>
+          <a href="khushu-level.html">Khushu Level</a>
+          <a href="ai-page.html">Ask AI</a>
+          <a href="live.html">Live Demo</a>
+        </div>
       </div>
     </header>
     <div class="content">
       <h2>Your Khushu Level</h2>
       <!-- Circular Progress Bar -->
-      <div class="progress-circle">
-      <div class="progress-value">100%</div>
+      <div class="progress-circle" id="progressCircle">
+        <div class="progress-value" id="progressValue">0%</div>
       </div>
-      <!-- Sections -->
+      <!-- Sections for different prayer stages -->
       <div class="sections">
         <div class="section">
-          <h3>Start of Prayer</h3>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+          <div class="section-icon"><i class="fa-solid fa-person-standing"></i></div>
+          <div>
+            <h3>Standing</h3>
+            <p>Your standing focus is <span id="standingFocus">N/A</span>. Keep your gaze steady and your mind clear.</p>
+          </div>
         </div>
         <div class="section">
-          <h3>Mid Prayer</h3>
-          <p>Quisque vel lacus a velit facilisis tincidunt sed at arcu.</p>
+          <div class="section-icon"><i class="fa-solid fa-person-digging"></i></div>
+          <div>
+            <h3>Bending</h3>
+            <p>Your bending focus is <span id="bendingFocus">N/A</span>. Remain composed and let your heart guide you.</p>
+          </div>
         </div>
         <div class="section">
-          <h3>End of Prayer</h3>
-          <p>Ut tristique risus id lacus suscipit, sit amet tincidunt ligula.</p>
+          <div class="section-icon"><i class="fa-solid fa-person-praying"></i></div>
+          <div>
+            <h3>Prostration</h3>
+            <p>Your prostration focus is <span id="prostrationFocus">N/A</span>. Surrender fully and connect deeply.</p>
+          </div>
         </div>
       </div>
     </div>
   </div>
-
-  <!-- Link to the JavaScript file -->
-  <script src="js/khushu-level.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      let overallKhushu = localStorage.getItem("overallKhushu");
+      if (!overallKhushu) {
+        overallKhushu = 0;
+      } else {
+        overallKhushu = parseFloat(overallKhushu);
+      }
+      const progressCircle = document.getElementById("progressCircle");
+      const progressValue = document.getElementById("progressValue");
+      progressCircle.style.background = `conic-gradient(
+        #c084fc 0% ${overallKhushu}%, 
+        rgba(255, 255, 255, 0.15) ${overallKhushu}% 100%
+      )`;
+      progressValue.textContent = `${overallKhushu}%`;
+      document.getElementById("standingFocus").textContent = "Excellent";
+      document.getElementById("bendingFocus").textContent = "Good";
+      document.getElementById("prostrationFocus").textContent = "Outstanding";
+    });
+    const menuIcon = document.getElementById('menuIcon');
+    const dropdownMenu = document.getElementById('dropdownMenu');
+    menuIcon.addEventListener('click', function(event) {
+      event.stopPropagation();
+      dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+    });
+    document.addEventListener('click', function(event) {
+      if (!event.target.closest('.menu')) {
+        dropdownMenu.style.display = 'none';
+      }
+    });
+  </script>
 </body>
 </html>

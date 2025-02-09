@@ -8,44 +8,298 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet" />
   <!-- Link to the Live Demo CSS -->
   <link rel="stylesheet" href="css/live-styles.css" />
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Additional styles for a wider container, one-line buttons, and dropdown menu -->
+  <style>
+    /* Main container */
+    .main-container {
+      width: 100%;
+      max-width: 800px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+      margin: auto;
+    }
+    /* One-line button container */
+    .all-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: nowrap;
+      margin-top: 20px;
+    }
+    /* Dropdown menu for navigation */
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      right: 20px;
+      top: 60px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      overflow: hidden;
+      z-index: 10;
+      min-width: 200px;
+    }
+    .dropdown-menu a {
+      display: block;
+      padding: 10px 15px;
+      text-decoration: none;
+      color: #333;
+      border-bottom: 1px solid #ddd;
+    }
+    .dropdown-menu a:last-child {
+      border-bottom: none;
+    }
+    .dropdown-menu a:hover {
+      background-color: #eee;
+    }
+    /* Make the menu icon clickable */
+    .menu-icon {
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-
-  <!-- Optional background overlays (if desired) -->
+  <!-- Optional background overlays -->
   <div class="background-mat"></div>
   <div class="background-waves"></div>
-
   <div class="main-container">
     <header>
-      <div class="logo">
-        <h1>Khushu</h1>
-      </div>
+      <div class="logo"><h1>Khushu</h1></div>
       <div class="menu">
-        <span class="menu-icon">☰</span>
+        <span class="menu-icon" id="menuIcon">☰</span>
+        <!-- Dropdown Menu -->
+        <div class="dropdown-menu" id="dropdownMenu">
+          <a href="index.html">Home</a>
+          <a href="khushu-level.html">Khushu Level</a>
+          <a href="ai-page.html">Ask AI</a>
+          <a href="live.html">Live Demo</a>
+        </div>
       </div>
     </header>
     <div class="content">
       <h2>Live Demo</h2>
-      <p>Watch live graphs of your posture data updating in real time.</p>
-      
-      <!-- Container for the live graph -->
+      <p>Watch live graphs of your brain wave activity updating in real time.</p>
+      <!-- Container for the live graphs -->
       <div id="liveGraph">
-        <!-- Live graphs will be displayed here. -->
-        <p>Live Graph Placeholder</p>
+        <!-- Khushu chart appears first -->
+        <canvas id="khushuChart"></canvas>
+        <!-- Brain Wave chart (Alpha only) is hidden by default -->
+        <canvas id="bandChart" style="margin-top:20px; display: none;"></canvas>
       </div>
-      
-      <!-- A button to trigger live demo functionality -->
-      <button class="button" onclick="startLiveDemo()">Start Live Demo</button>
+      <!-- All control buttons in one row -->
+      <div class="all-buttons">
+        <button class="button" id="toggleGraph">Show Brain Waves</button>
+        <button class="button" id="startButton">Start Demo</button>
+        <button class="button" id="endButton" style="display:none;">End Demo</button>
+        <!-- This button will navigate to the results page -->
+        <button class="button" id="downloadCSV" style="display:none;">View Results</button>
+        <button class="button" id="askChatBot" style="display:none;">Ask Chat Bot</button>
+      </div>
+      <!-- Text feedback (showing Khushu Level, Alpha, Alpha/Theta Ratio, and time) -->
+      <div id="feedback" style="margin-top:20px; font-size:16px;"></div>
     </div>
   </div>
 
-  <!-- Optional JavaScript placeholder -->
   <script>
-    function startLiveDemo() {
-      // This is a placeholder for starting the live demo.
-      // You can integrate your live graph code (e.g., using WebSocket, Chart.js, etc.) here.
-      alert("Live demo started! (This is a placeholder function.)");
+    // Toggle dropdown menu when menu icon is clicked
+    const menuIcon = document.getElementById('menuIcon');
+    const dropdownMenu = document.getElementById('dropdownMenu');
+    menuIcon.addEventListener('click', () => {
+      dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+    });
+    // Close the dropdown if clicking outside the menu
+    document.addEventListener('click', function(event) {
+      if (!event.target.closest('.menu')) {
+        dropdownMenu.style.display = 'none';
+      }
+    });
+
+    // Global variables and configuration
+    let demoInterval;
+    const pollingInterval = 100; // milliseconds between polls
+    const backendUrl = "http://localhost:3000"; // adjust if needed
+
+    // Setup Chart.js charts
+    const bandCtx = document.getElementById('bandChart').getContext('2d');
+    const khushuCtx = document.getElementById('khushuChart').getContext('2d');
+
+    // Data arrays for the charts (shared time axis)
+    let timeLabels = [];
+    let alphaData = [];
+    let khushuData = [];
+
+    // Chart for Khushu Level (displayed on top, more visible)
+    const khushuChart = new Chart(khushuCtx, {
+      type: 'line',
+      data: {
+        labels: timeLabels,
+        datasets: [
+          { 
+            label: 'Khushu Level (%)', 
+            data: khushuData, 
+            borderColor: 'lime', 
+            borderWidth: 3,
+            fill: false 
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        title: { display: true, text: 'Khushu Level Over Time' },
+        scales: {
+          x: {
+            type: 'linear',
+            position: 'bottom',
+            title: { display: true, text: 'Time (s)' },
+            ticks: { callback: value => Math.floor(value) }
+          },
+          y: {
+            min: 0,
+            max: 100,
+            title: { display: true, text: 'Percentage (%)' }
+          }
+        }
+      }
+    });
+
+    // Chart for Brain Wave (Alpha channel only)
+    const bandChart = new Chart(bandCtx, {
+      type: 'line',
+      data: {
+        labels: timeLabels,
+        datasets: [
+          { 
+            label: 'Alpha', 
+            data: alphaData, 
+            borderColor: 'green', 
+            fill: false 
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        title: { display: true, text: 'Alpha Levels Over Time' },
+        scales: {
+          x: {
+            type: 'linear',
+            position: 'bottom',
+            title: { display: true, text: 'Time (s)' },
+            ticks: { callback: value => Math.floor(value) }
+          },
+          y: {
+            title: { display: true, text: 'Power' }
+          }
+        }
+      }
+    });
+
+    async function startDemo() {
+      try {
+        const response = await fetch(`${backendUrl}/start_demo`, { method: 'POST' });
+        const data = await response.json();
+        console.log("Demo started:", data);
+      } catch (error) {
+        console.error("Error starting demo:", error);
+        return;
+      }
+      // Hide post-demo buttons and clear feedback
+      document.getElementById('downloadCSV').style.display = 'none';
+      document.getElementById('askChatBot').style.display = 'none';
+      document.getElementById('feedback').innerHTML = '';
+      // Toggle button visibility
+      document.getElementById('startButton').style.display = 'none';
+      document.getElementById('endButton').style.display = 'inline-block';
+      // Clear previous data arrays
+      timeLabels = [];
+      alphaData.length = 0;
+      khushuData.length = 0;
+      khushuChart.data.labels = timeLabels;
+      bandChart.data.labels = timeLabels;
+      khushuChart.update();
+      bandChart.update();
+      // Start polling for new data
+      demoInterval = setInterval(fetchData, pollingInterval);
     }
+
+    async function endDemo() {
+      try {
+        const response = await fetch(`${backendUrl}/end_demo`, { method: 'POST' });
+        const data = await response.json();
+        console.log("Demo ended:", data);
+      } catch (error) {
+        console.error("Error ending demo:", error);
+      }
+      clearInterval(demoInterval);
+      document.getElementById('startButton').style.display = 'inline-block';
+      document.getElementById('endButton').style.display = 'none';
+      document.getElementById('feedback').innerHTML = '';
+      // Save final overall Khushu level to localStorage
+      const finalKhushu = khushuData[khushuData.length - 1] || 0;
+      localStorage.setItem("overallKhushu", finalKhushu);
+      // Show post-demo buttons (for our purposes, the "downloadCSV" button will navigate to the results page)
+      document.getElementById('downloadCSV').style.display = 'inline-block';
+      document.getElementById('askChatBot').style.display = 'inline-block';
+    }
+
+    async function fetchData() {
+      try {
+        const response = await fetch(`${backendUrl}/data`);
+        const data = await response.json();
+        if (data.status === "processing") {
+          const t = Math.floor(data.time);
+          timeLabels.push(t);
+          alphaData.push(data.band_powers.alpha);
+          khushuData.push(data.khushu_percentage);
+          const feedback = `
+            Khushu Level: ${data.khushu_percentage.toFixed(1)}%<br>
+            Alpha: ${data.band_powers.alpha.toFixed(2)}<br>
+            Alpha/Theta Ratio: ${data.alpha_theta_ratio.toFixed(2)}<br>
+            Time: ${t} s
+          `;
+          document.getElementById('feedback').innerHTML = feedback;
+          khushuChart.update();
+          bandChart.update();
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }
+
+    // Toggle between charts
+    function toggleGraph() {
+      const khushuCanvas = document.getElementById('khushuChart');
+      const bandCanvas = document.getElementById('bandChart');
+      const toggleButton = document.getElementById('toggleGraph');
+      if (khushuCanvas.style.display !== 'none') {
+        khushuCanvas.style.display = 'none';
+        bandCanvas.style.display = 'block';
+        toggleButton.textContent = 'Show Khushu Level';
+      } else {
+        khushuCanvas.style.display = 'block';
+        bandCanvas.style.display = 'none';
+        toggleButton.textContent = 'Show Brain Waves';
+      }
+    }
+
+    // Event listeners
+    document.getElementById('startButton').addEventListener('click', startDemo);
+    document.getElementById('endButton').addEventListener('click', endDemo);
+    document.getElementById('toggleGraph').addEventListener('click', toggleGraph);
+    // Instead of downloading CSV, the "downloadCSV" button now navigates to the Khushu Level page
+    document.getElementById('downloadCSV').addEventListener('click', () => {
+      window.location.href = 'khushu-level.html';
+    });
+    document.getElementById('askChatBot').addEventListener('click', () => {
+      alert('Chat Bot clicked!');
+    });
   </script>
 </body>
 </html>
