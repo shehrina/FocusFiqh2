@@ -1,114 +1,111 @@
 /* General Styling */
 body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Poppins', sans-serif;
-    background: linear-gradient(135deg, #8e44ad, #9b59b6);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    position: relative;
-  }
-  
-  /* Optional Background Overlays */
-  .background-mat {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: url('../img/mat.png') center/cover no-repeat;
-    opacity: 0.2;
-    z-index: -2;
-  }
-  
-  .background-waves {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.05), transparent);
-    z-index: -1;
-  }
-  
-  /* Main Container (Glassmorphism) */
-  .main-container {
-    width: 100%;
-    max-width: 600px;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 20px;
-    padding: 30px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-    backdrop-filter: blur(10px);
-  }
-  
-  /* Header */
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  
-  .logo h1 {
-    font-size: 24px;
-    font-weight: bold;
-  }
-  
-  .menu .menu-icon {
-    font-size: 24px;
-    cursor: pointer;
-  }
-  
-  /* Page Title and Paragraph */
-  h2 {
-    font-size: 22px;
-    font-weight: bold;
-    margin-bottom: 10px;
-  }
-  
-  p {
-    font-size: 14px;
-    line-height: 1.6;
-    margin-bottom: 20px;
-    color: #e0e0e0;
-  }
-  
-  /* Button Styling */
-  .button {
-    background: linear-gradient(135deg, #d8b4fe, #c084fc);
-    color: white;
-    padding: 10px 20px;
-    border-radius: 30px;
-    font-size: 16px;
-    font-weight: bold;
-    border: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  
-  .button:hover {
-    background: linear-gradient(135deg, #c084fc, #a78bfa);
-    transform: scale(1.05);
-  }
-  
-  /* Live Graph Container */
-  #liveGraph {
-    width: 100%;
-    height: 300px; /* Adjust the height as needed */
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #e0e0e0;
-  }
-  
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #8e44ad, #9b59b6);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  position: relative;
+}
+
+/* Optional Background Overlays */
+.background-mat {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('../img/mat.png') center/cover no-repeat;
+  opacity: 0.2;
+  z-index: -2;
+}
+
+.background-waves {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.05), transparent);
+  z-index: -1;
+}
+
+/* Main Container (Glassmorphism) */
+.main-container {
+  width: 100%;
+  max-width: 600px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+/* Header */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.logo h1 {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.menu .menu-icon {
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* Page Title and Paragraph */
+h2 {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+p {
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  color: #e0e0e0;
+}
+
+/* Button Styling */
+.button {
+  background: linear-gradient(135deg, #d8b4fe, #c084fc);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 5px;
+}
+
+.button:hover {
+  background: linear-gradient(135deg, #c084fc, #a78bfa);
+  transform: scale(1.05);
+}
+
+/* Live Graph Container */
+#liveGraph {
+  width: 100%;
+  height: auto;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  margin-bottom: 20px;
+  padding: 10px;
+}
