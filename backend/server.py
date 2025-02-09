@@ -6,7 +6,7 @@ app = Flask(__name__)
 @app.route("/latest-data", methods=["GET"])
 def get_latest_data():
     try:
-        with open('current_session_details.csv', 'r') as f:
+        with open('detailed_session.csv', 'r') as f:
             # Skip the header row
             next(f)
             # Return the rest of the data
