@@ -87,6 +87,8 @@
     <div class="content">
       <h2>Live Demo</h2>
       <p>Watch live graphs of your brain wave activity updating in real time.</p>
+      <!-- Add connection status indicator -->
+      <div id="connectionStatus" style="margin-bottom: 10px; color: #666;"></div>
       <!-- Container for the live graphs -->
       <div id="liveGraph">
         <!-- Khushu chart appears first -->
@@ -125,7 +127,7 @@
     // Global variables and configuration
     let demoInterval;
     const pollingInterval = 100; // milliseconds between polls
-    const backendUrl = "http://localhost:3000"; // adjust if needed
+    const backendUrl = "https://d8e6-129-100-255-81.ngrok-free.app"; // adjust if needed
 
     // Setup Chart.js charts
     const bandCtx = document.getElementById('bandChart').getContext('2d');
@@ -177,56 +179,261 @@
         labels: timeLabels,
         datasets: [
           { 
+            label: 'Delta', 
+            data: [], 
+            borderColor: 'blue',
+            fill: false,
+            tension: 0.4  // Add some smoothing
+          },
+          { 
+            label: 'Theta', 
+            data: [], 
+            borderColor: 'cyan',
+            fill: false,
+            tension: 0.4
+          },
+          { 
             label: 'Alpha', 
-            data: alphaData, 
-            borderColor: 'green', 
-            fill: false 
+            data: [], 
+            borderColor: 'green',
+            fill: false,
+            tension: 0.4
+          },
+          { 
+            label: 'Beta', 
+            data: [], 
+            borderColor: 'yellow',
+            fill: false,
+            tension: 0.4
+          },
+          { 
+            label: 'Gamma', 
+            data: [], 
+            borderColor: 'red',
+            fill: false,
+            tension: 0.4
           }
         ]
       },
       options: {
         responsive: true,
-        title: { display: true, text: 'Alpha Levels Over Time' },
+        animation: false,
+        plugins: {
+          title: { 
+            display: true, 
+            text: 'Brain Wave Bands Over Time',
+            color: '#fff'
+          },
+          legend: {
+            labels: {
+              color: '#fff'
+            }
+          }
+        },
         scales: {
           x: {
             type: 'linear',
             position: 'bottom',
-            title: { display: true, text: 'Time (s)' },
-            ticks: { callback: value => Math.floor(value) }
+            title: { 
+              display: true, 
+              text: 'Time (s)',
+              color: '#fff'
+            },
+            ticks: { 
+              maxTicksLimit: 10,
+              color: '#fff'
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            }
           },
           y: {
-            title: { display: true, text: 'Power' }
+            type: 'logarithmic', // Changed back to logarithmic for better visualization of large values
+            title: { 
+              display: true, 
+              text: 'Power',
+              color: '#fff'
+            },
+            min: 1000,  // Adjusted minimum value
+            max: 50000, // Adjusted maximum value
+            ticks: { 
+              maxTicksLimit: 8,
+              color: '#fff'
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            }
           }
         }
       }
     });
 
+    async function fetchData() {
+      const statusElement = document.getElementById('connectionStatus');
+      try {
+        statusElement.innerHTML = 'Fetching data...';
+        const response = await fetch(`${backendUrl}/`, {
+          headers: {
+            'ngrok-skip-browser-warning': 'true'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const text = await response.text();
+        if (!text.trim()) {
+          console.log("Received empty data");
+          statusElement.innerHTML = 'Waiting for data...';
+          return;
+        }
+
+        // Parse CSV data
+        const lines = text.trim().split('\n');
+        if (lines.length === 0) {
+          console.log("No data lines found");
+          return;
+        }
+
+        // Process each new line of data
+        lines.forEach(line => {
+          const values = line.split(',').map(val => parseFloat(val.trim()));
+          if (values.length !== 7) {
+            console.warn("Invalid data line:", line);
+            return;
+          }
+
+          const [time, delta, theta, alpha, beta, gamma, khushu] = values;
+          console.log("Processing values:", { time, delta, theta, alpha, beta, gamma, khushu }); // Debug log
+
+          // Add new data points
+          timeLabels.push(time);
+          khushuData.push(khushu);
+          
+          // Update brain wave data
+          bandChart.data.datasets[0].data.push(delta);
+          bandChart.data.datasets[1].data.push(theta);
+          bandChart.data.datasets[2].data.push(alpha);
+          bandChart.data.datasets[3].data.push(beta);
+          bandChart.data.datasets[4].data.push(gamma);
+
+          // Keep only last 30 points for better visualization
+          const maxPoints = 30;
+          if (timeLabels.length > maxPoints) {
+            timeLabels.shift();
+            khushuData.shift();
+            bandChart.data.datasets.forEach(dataset => dataset.data.shift());
+          }
+        });
+
+        // Update the charts configuration
+        bandChart.options = {
+          responsive: true,
+          animation: false,
+          plugins: {
+            title: { 
+              display: true, 
+              text: 'Brain Wave Bands Over Time',
+              color: '#fff'
+            },
+            legend: {
+              labels: {
+                color: '#fff'
+              }
+            }
+          },
+          scales: {
+            x: {
+              type: 'linear',
+              position: 'bottom',
+              title: { 
+                display: true, 
+                text: 'Time (s)',
+                color: '#fff'
+              },
+              ticks: { 
+                color: '#fff'
+              },
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              }
+            },
+            y: {
+              type: 'linear', // Changed to linear scale
+              title: { 
+                display: true, 
+                text: 'Power',
+                color: '#fff'
+              },
+              min: 0,
+              suggestedMax: 50000,
+              ticks: { 
+                color: '#fff'
+              },
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              }
+            }
+          }
+        };
+
+        // Update chart data
+        bandChart.data.labels = timeLabels;
+        khushuChart.data.labels = timeLabels;
+        khushuChart.data.datasets[0].data = khushuData;
+
+        // Force charts to update
+        bandChart.update();
+        khushuChart.update();
+
+        // Update feedback with latest values
+        const lastIndex = timeLabels.length - 1;
+        if (lastIndex >= 0) {
+          document.getElementById('feedback').innerHTML = '';
+          statusElement.innerHTML = 'Connected - Receiving data';
+          statusElement.style.color = '#4CAF50';
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        statusElement.innerHTML = 'Connection error - Retrying...';
+        statusElement.style.color = '#f44336';
+      }
+    }
+
+    // When starting the demo, clear and initialize the charts
     async function startDemo() {
       try {
-        const response = await fetch(`${backendUrl}/start_demo`, { method: 'POST' });
+        const response = await fetch(`${backendUrl}/start_demo`, { 
+          method: 'POST',
+          headers: {
+            'ngrok-skip-browser-warning': 'true'
+          }
+        });
         const data = await response.json();
         console.log("Demo started:", data);
+        
+        // Show end button and hide start button
+        document.getElementById('startButton').style.display = 'none';
+        document.getElementById('endButton').style.display = 'inline-block';
+        
+        // Clear all data arrays
+        timeLabels = [];
+        khushuData = [];
+        bandChart.data.datasets.forEach(dataset => {
+          dataset.data = [];
+        });
+        
+        // Update both charts
+        bandChart.update();
+        khushuChart.update();
+        
+        // Start polling for new data
+        demoInterval = setInterval(fetchData, pollingInterval);
       } catch (error) {
         console.error("Error starting demo:", error);
-        return;
+        alert("Failed to start demo. Please try again.");
       }
-      // Hide post-demo buttons and clear feedback
-      document.getElementById('downloadCSV').style.display = 'none';
-      document.getElementById('askChatBot').style.display = 'none';
-      document.getElementById('feedback').innerHTML = '';
-      // Toggle button visibility
-      document.getElementById('startButton').style.display = 'none';
-      document.getElementById('endButton').style.display = 'inline-block';
-      // Clear previous data arrays
-      timeLabels = [];
-      alphaData.length = 0;
-      khushuData.length = 0;
-      khushuChart.data.labels = timeLabels;
-      bandChart.data.labels = timeLabels;
-      khushuChart.update();
-      bandChart.update();
-      // Start polling for new data
-      demoInterval = setInterval(fetchData, pollingInterval);
     }
 
     async function endDemo() {
@@ -247,30 +454,6 @@
       // Show post-demo buttons (for our purposes, the "downloadCSV" button will navigate to the results page)
       document.getElementById('downloadCSV').style.display = 'inline-block';
       document.getElementById('askChatBot').style.display = 'inline-block';
-    }
-
-    async function fetchData() {
-      try {
-        const response = await fetch(`${backendUrl}/data`);
-        const data = await response.json();
-        if (data.status === "processing") {
-          const t = Math.floor(data.time);
-          timeLabels.push(t);
-          alphaData.push(data.band_powers.alpha);
-          khushuData.push(data.khushu_percentage);
-          const feedback = `
-            Khushu Level: ${data.khushu_percentage.toFixed(1)}%<br>
-            Alpha: ${data.band_powers.alpha.toFixed(2)}<br>
-            Alpha/Theta Ratio: ${data.alpha_theta_ratio.toFixed(2)}<br>
-            Time: ${t} s
-          `;
-          document.getElementById('feedback').innerHTML = feedback;
-          khushuChart.update();
-          bandChart.update();
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
     }
 
     // Toggle between charts
