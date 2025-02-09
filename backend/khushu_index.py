@@ -26,6 +26,30 @@ class KhushuMonitor:
             4. Can you see the stream in BlueMuse/MuseLSL?
             """)
         
+        # Create the inlet
+        self.eeg_inlet = StreamInlet(eeg_streams[0])
+        print("✅ Connected to EEG stream!")
+        
+        # Initialize CSV logging
+        self.csv_filename = "khushu_results.csv"
+        
+        # Get the last test number from CSV
+        try:
+            if os.path.exists(self.csv_filename):
+                with open(self.csv_filename, 'r') as f:
+                    lines = f.readlines()
+                    if len(lines) > 1:  # If there are any results
+                        last_line = lines[-1]
+                        last_test_num = int(last_line.split(',')[0].split()[1])
+                        self.test_number = last_test_num + 1
+                    else:
+                        self.test_number = 1
+            else:
+                self.test_number = 1
+        except Exception as e:
+            print(f"Warning: Could not read last test number: {e}")
+            self.test_number = 1
+        
         # Channel indices for Muse 2
         self.channels = {
             'TP9': 0,
