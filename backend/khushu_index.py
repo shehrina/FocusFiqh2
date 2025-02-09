@@ -12,20 +12,19 @@ plt.ion()  # Enable interactive mode
 
 class KhushuMonitor:
     def __init__(self):
-        # Add CSV related attributes
-        self.test_number = 1
-        self.csv_filename = 'khushu_results.csv'
-        self.max_tests = 10
-        
         print("Looking for Muse EEG stream...")
         streams = resolve_streams()
         
         # Connect to EEG stream
         eeg_streams = [s for s in streams if s.type() == 'EEG']
         if not eeg_streams:
-            raise RuntimeError("No EEG stream found!")
-        self.eeg_inlet = StreamInlet(eeg_streams[0])
-        print("✅ Connected to EEG stream!")
+            raise RuntimeError("""
+            No EEG stream found! Please check:
+            1. Is your Muse turned on?
+            2. Is it paired via Bluetooth?
+            3. Is BlueMuse/MuseLSL running?
+            4. Can you see the stream in BlueMuse/MuseLSL?
+            """)
         
         # Channel indices for Muse 2
         self.channels = {
@@ -229,29 +228,25 @@ class KhushuMonitor:
             writer.writerow([f'Test {self.test_number}', f'{avg_khushu:.2f}'])
     
     def start_monitoring(self):
-        if self.test_number > self.max_tests:
-            print(f"Maximum number of tests ({self.max_tests}) reached!")
-            return
-            
         self.calibrate()
-        print(f"\nStarting Khushu monitoring... (Test {self.test_number})\n")
         
-        # Reset values for new test
-        self.times = []
-        self.khushu_values = []
-        for band in self.band_values:
-            self.band_values[band] = []
-        
+        print("\nStarting Khushu monitoring...\n")
         window_size = 256
         eeg_buffer = []
         start_time = time.time()
+        last_data_time = time.time()
         
         try:
             while True:
-                sample, _ = self.eeg_inlet.pull_sample(timeout=0.0)
-                current_time = time.time() - start_time
+                sample, timestamp = self.eeg_inlet.pull_sample(timeout=0.1)
+                current_time = time.time()
+                
+                # Check if we haven't received data for too long
+                if current_time - last_data_time > 2.0:
+                    print("\n⚠️ No data received for 2 seconds. Check Muse connection!")
                 
                 if sample:
+                    last_data_time = current_time
                     eeg_buffer.append(sample[:4])
                 
                 if len(eeg_buffer) >= window_size:
@@ -260,7 +255,7 @@ class KhushuMonitor:
                     khushu_percentage = self.calculate_khushu_percentage(powers)
                     
                     # Update data for plotting
-                    self.times.append(current_time)
+                    self.times.append(current_time - start_time)
                     
                     for band, power in powers.items():
                         if band not in self.band_values:
@@ -296,8 +291,11 @@ class KhushuMonitor:
             self.save_results_to_csv()
             self.test_number += 1
             plt.close('all')
+        except Exception as e:
+            print(f"\n❌ Error during monitoring: {e}")
+            print("Please check your Muse connection and try again")
+            plt.close('all')
 
 if __name__ == "__main__":
     monitor = KhushuMonitor()
-    while monitor.test_number <= monitor.max_tests:
-        monitor.start_monitoring() 
+    monitor.start_monitoring() 
