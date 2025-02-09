@@ -1,0 +1,93 @@
+/* General Styling */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #8e44ad, #9b59b6);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+  }
+  
+  /* Main Container */
+  .main-container {
+    width: 100%;
+    max-width: 500px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    position: relative;
+    backdrop-filter: blur(10px);
+  }
+  
+  /* Header */
+  header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .logo h1 {
+    font-size: 24px;
+    font-weight: bold;
+  }
+  
+  /* Page Title */
+  h2 {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  
+  /* Circular Progress Bar */
+  .progress-circle {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: conic-gradient(#c084fc 0% 0%, rgba(255, 255, 255, 0.15) 0% 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto;
+    position: relative;
+    transition: background 0.5s ease; /* Smooth transition for gradient update */
+  }
+  
+  .progress-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    position: absolute;
+  }
+  
+  /* Sections */
+  .sections {
+    margin-top: 30px;
+  }
+  
+  .section {
+    margin-bottom: 20px;
+  }
+  
+  .section h3 {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  
+  .section p {
+    font-size: 14px;
+    color: #e0e0e0;
+  }
+  

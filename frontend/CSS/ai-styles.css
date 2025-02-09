@@ -1,0 +1,126 @@
+/* General Styling */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #8e44ad, #9b59b6);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    position: relative;
+}
+
+/* Background Mat */
+.background-mat {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('../img/mat.png') center/cover no-repeat;
+    opacity: 0.2;
+    z-index: -2;
+}
+
+/* Waves Effect */
+.background-waves {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.05), transparent);
+    z-index: -1;
+}
+
+/* Main Container */
+.main-container {
+    width: 100%;
+    max-width: 500px; /* Increased max-width for wider box */
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+/* Header */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo img {
+    width: 30px;
+    height: 30px;
+}
+
+.logo h1 {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.menu .menu-icon {
+    font-size: 24px;
+    cursor: pointer;
+}
+
+/* Page Title */
+h2 {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+p {
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    color: #e0e0e0;
+}
+
+/* Buttons */
+.ask-button {
+    background: linear-gradient(135deg, #d8b4fe, #c084fc);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.ask-button:hover {
+    background: linear-gradient(135deg, #c084fc, #a78bfa);
+    transform: scale(1.05);
+}
+
+/* Textarea for AI Page */
+.question-box {
+    width: 100%;
+    max-width: 450px; /* Wider text box */
+    height: 50px; /* Reduced height */
+    border-radius: 20px; /* Rounded corners */
+    border: none;
+    padding: 10px;
+    font-size: 14px;
+    margin-bottom: 20px;
+    resize: none;
+    background: white; /* White background for the text box */
+    color: black; /* Ensure text is visible on white */
+}
