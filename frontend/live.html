@@ -64,6 +64,50 @@
     .menu-icon {
       cursor: pointer;
     }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      z-index: 100;
+    }
+    .modal-content {
+      background: rgba(255,255,255,0.95);
+      margin: 5% auto;
+      padding: 20px;
+      width: 90%;
+      max-width: 800px;
+      border-radius: 10px;
+      color: #333;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .close-button {
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #resultsTable {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    #resultsTable th, #resultsTable td {
+      padding: 8px;
+      text-align: right;
+      border-bottom: 1px solid #ddd;
+    }
+    #resultsTable th {
+      background: #8e44ad;
+      color: white;
+    }
+    #resultsTable tr:nth-child(even) {
+      background: rgba(142, 68, 173, 0.1);
+    }
   </style>
 </head>
 <body>
@@ -108,6 +152,26 @@
       <!-- Text feedback (showing Khushu Level, Alpha, Alpha/Theta Ratio, and time) -->
       <div id="feedback" style="margin-top:20px; font-size:16px;"></div>
     </div>
+    <div id="resultsModal" class="modal" style="display:none;">
+      <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2>Session Results</h2>
+        <table id="resultsTable">
+          <thead>
+            <tr>
+              <th>Time (s)</th>
+              <th>Delta</th>
+              <th>Theta</th>
+              <th>Alpha</th>
+              <th>Beta</th>
+              <th>Gamma</th>
+              <th>Khushu</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -127,7 +191,7 @@
     // Global variables and configuration
     let demoInterval;
     const pollingInterval = 100; // milliseconds between polls
-    const backendUrl = "https://d8e6-129-100-255-81.ngrok-free.app"; // adjust if needed
+    const backendUrl = "https://c4db-129-100-255-31.ngrok-free.app"; // adjust if needed
 
     // Setup Chart.js charts
     const bandCtx = document.getElementById('bandChart').getContext('2d');
@@ -404,17 +468,23 @@
     // When starting the demo, clear and initialize the charts
     async function startDemo() {
       try {
-        const response = await fetch(`${backendUrl}/start_demo`, { 
+        // Disable start button while request is in progress
+        const startButton = document.getElementById('startButton');
+        startButton.disabled = true;
+        
+        const response = await fetch('../backend/start_demo', {
           method: 'POST',
           headers: {
-            'ngrok-skip-browser-warning': 'true'
+            'Content-Type': 'application/json'
           }
         });
-        const data = await response.json();
-        console.log("Demo started:", data);
-        
+
+        if (!response.ok) {
+          throw new Error('Failed to start demo');
+        }
+
         // Show end button and hide start button
-        document.getElementById('startButton').style.display = 'none';
+        startButton.style.display = 'none';
         document.getElementById('endButton').style.display = 'inline-block';
         
         // Clear all data arrays
@@ -429,10 +499,15 @@
         khushuChart.update();
         
         // Start polling for new data
+        if (demoInterval) {
+          clearInterval(demoInterval);
+        }
         demoInterval = setInterval(fetchData, pollingInterval);
       } catch (error) {
         console.error("Error starting demo:", error);
         alert("Failed to start demo. Please try again.");
+        // Re-enable start button on error
+        document.getElementById('startButton').disabled = false;
       }
     }
 
@@ -477,11 +552,55 @@
     document.getElementById('endButton').addEventListener('click', endDemo);
     document.getElementById('toggleGraph').addEventListener('click', toggleGraph);
     // Instead of downloading CSV, the "downloadCSV" button now navigates to the Khushu Level page
-    document.getElementById('downloadCSV').addEventListener('click', () => {
-      window.location.href = 'khushu-level.html';
+    document.getElementById('downloadCSV').addEventListener('click', async () => {
+      const modal = document.getElementById('resultsModal');
+      const tbody = document.querySelector('#resultsTable tbody');
+      tbody.innerHTML = ''; // Clear existing data
+      
+      try {
+        const response = await fetch(`${backendUrl}/`, {
+          headers: {
+            'ngrok-skip-browser-warning': 'true'
+          }
+        });
+        const text = await response.text();
+        
+        // Parse CSV and create table rows
+        const lines = text.trim().split('\n');
+        lines.forEach(line => {
+          const [time, delta, theta, alpha, beta, gamma, khushu] = line.split(',');
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${parseFloat(time).toFixed(2)}</td>
+            <td>${parseFloat(delta).toFixed(2)}</td>
+            <td>${parseFloat(theta).toFixed(2)}</td>
+            <td>${parseFloat(alpha).toFixed(2)}</td>
+            <td>${parseFloat(beta).toFixed(2)}</td>
+            <td>${parseFloat(gamma).toFixed(2)}</td>
+            <td>${parseFloat(khushu).toFixed(2)}%</td>
+          `;
+          tbody.appendChild(row);
+        });
+        
+        modal.style.display = 'block';
+      } catch (error) {
+        console.error('Error loading results:', error);
+        alert('Error loading results. Please try again.');
+      }
     });
     document.getElementById('askChatBot').addEventListener('click', () => {
       alert('Chat Bot clicked!');
+    });
+
+    // Close modal when clicking the X or outside
+    document.querySelector('.close-button').addEventListener('click', () => {
+      document.getElementById('resultsModal').style.display = 'none';
+    });
+    window.addEventListener('click', (event) => {
+      const modal = document.getElementById('resultsModal');
+      if (event.target === modal) {
+        modal.style.display = 'none';
+      }
     });
   </script>
 </body>

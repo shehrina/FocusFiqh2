@@ -12,6 +12,13 @@ plt.ion()  # Enable interactive mode
 
 class KhushuMonitor:
     def __init__(self):
+        # Get the backend directory path
+        self.backend_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        # Set CSV paths in backend directory
+        self.csv_filename = os.path.join(self.backend_dir, "khushu_results.csv")
+        self.detailed_csv_filename = os.path.join(self.backend_dir, "detailed_session.csv")
+        
         print("Looking for Muse EEG stream...")
         streams = resolve_streams()
         
@@ -29,10 +36,6 @@ class KhushuMonitor:
         # Create the inlet
         self.eeg_inlet = StreamInlet(eeg_streams[0])
         print("✅ Connected to EEG stream!")
-        
-        # Initialize CSV logging
-        self.csv_filename = "khushu_results.csv"
-        self.detailed_csv_filename = "detailed_session.csv"  # Single file for all sessions
         
         # Get the last test number from CSV FIRST
         try:

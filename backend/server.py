@@ -1,4 +1,4 @@
-from flask import Flask, Response, jsonify
+from flask import Flask, Response, jsonify, request
 from flask_cors import CORS
 import csv
 import subprocess
@@ -6,7 +6,7 @@ import signal
 import os
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})  # Enable CORS for all routes
 
 # Global variable to store the process
 khushu_process = None
@@ -17,8 +17,7 @@ def get_csv_data():
         with open('detailed_session.csv', 'r') as f:
             # Skip the header row
             next(f)
-            # Return all data rows without headers
-            return Response(f.read(), mimetype='text/plain')
+            return Response(f.read(), mimetype='text/csv')
     except FileNotFoundError:
         return "No data available yet", 204
     except Exception as e:
@@ -51,24 +50,50 @@ def get_latest_data():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@app.route("/start_demo", methods=["POST"])
+@app.route("/start_demo", methods=["POST", "OPTIONS"])
 def start_demo():
     global khushu_process
+    
+    # Handle preflight OPTIONS request
+    if request.method == "OPTIONS":
+        response = jsonify({"status": "success"})
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        return response, 200
+        
     try:
-        # Start khushu_index.py as a subprocess
+        # If process is already running, don't start a new one
+        if khushu_process and khushu_process.poll() is None:
+            return jsonify({"status": "success", "message": "Demo already running"})
+            
+        # Clear existing CSV file
+        with open('detailed_session.csv', 'w') as f:
+            f.write('time,DP,TP,AP,BP,GP,KI\n')
+            
+        # Start khushu_index.py
         khushu_process = subprocess.Popen(['python', 'khushu_index.py'])
         return jsonify({"status": "success", "message": "Demo started"})
     except Exception as e:
+        if khushu_process:
+            khushu_process.terminate()
+            khushu_process = None
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@app.route("/end_demo", methods=["POST"])
+@app.route("/end_demo", methods=["POST", "OPTIONS"])
 def end_demo():
     global khushu_process
+    
+    # Handle preflight OPTIONS request
+    if request.method == "OPTIONS":
+        response = jsonify({"status": "success"})
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        return response, 200
+        
     try:
         if khushu_process:
-            # Send SIGINT (Ctrl+C) to the process
             khushu_process.send_signal(signal.SIGINT)
-            khushu_process.wait()  # Wait for the process to finish
+            khushu_process.wait()
             khushu_process = None
         return jsonify({"status": "success", "message": "Demo ended"})
     except Exception as e:
