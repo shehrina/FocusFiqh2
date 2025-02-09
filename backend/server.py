@@ -1,4 +1,4 @@
-from flask import Flask, Response, jsonify
+from flask import Flask, Response, jsonify, request
 from flask_cors import CORS
 import csv
 import subprocess
@@ -8,6 +8,7 @@ import sys
 import time
 import pandas as pd
 import numpy as np
+from api.chatbot import generate_response  # Import your existing chatbot function
 
 app = Flask(__name__)
 CORS(app)
@@ -140,6 +141,63 @@ def end_demo():
         return jsonify({"status": "success", "message": "Demo ended"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route("/api/chat", methods=["POST"])
+def chat():
+    try:
+        data = request.get_json()
+        message = data.get('message')
+        conditions = data.get('conditions', [])  # Get list of conditions
+
+        if not message:
+            return jsonify({
+                "status": "error",
+                "message": "No message provided"
+            }), 400
+
+        response = generate_response(message, conditions)
+        
+        if response is None:
+            return jsonify({
+                "status": "error",
+                "message": "Failed to generate response"
+            }), 500
+
+        return jsonify({
+            "status": "success",
+            "response": response
+        })
+
+    except Exception as e:
+        print(f"Error in chat endpoint: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
+@app.route("/api/khushu-index", methods=["GET"])
+def get_khushu_index():
+    try:
+        # Get the directory of the current script
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        csv_path = os.path.join(current_dir, 'khushu_results.csv')
+        
+        # Read the CSV file using pandas
+        df = pd.read_csv(csv_path)
+        
+        # Calculate the average of the 'Average Khushu Index' column
+        average_index = round(df['Average Khushu Index'].mean(), 2)
+        
+        return jsonify({
+            "status": "success",
+            "average_index": average_index
+        })
+    except Exception as e:
+        print(f"Error getting Khushu index: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5001, debug=False)

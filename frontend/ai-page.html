@@ -61,6 +61,7 @@
       font-family: 'Poppins', sans-serif;
       font-size: 14px;
       cursor: pointer;
+      min-height: 120px; /* Height for multiple selections */
     }
 
     .condition-select option {
@@ -72,6 +73,210 @@
       margin: 10px 0;
       color: #e0e0e0;
       font-size: 14px;
+    }
+
+    .chat-container {
+      margin: 30px auto;
+      width: 100%;
+      max-width: 800px;
+      background: rgba(255, 255, 255, 0.15);  /* Increased opacity */
+      backdrop-filter: blur(10px);  /* Adds frosted glass effect */
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .chat-header {
+      display: flex;
+      justify-content: flex-end;
+      padding: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      margin-bottom: 15px;
+    }
+
+    .zoom-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .zoom-button {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      padding: 8px 15px;
+      border-radius: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .zoom-button:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .chat-messages {
+      height: 500px;
+      overflow-y: auto;
+      padding: 20px;
+      margin-bottom: 20px;
+      scroll-behavior: smooth;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .message {
+      margin-bottom: 20px;
+      padding: 15px;
+      border-radius: 15px;
+      max-width: 85%;
+      line-height: 1.6;
+      font-size: 16px;
+      position: relative;
+      animation: fadeIn 0.3s ease-in;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .user-message {
+      background: rgba(76, 175, 80, 0.25);
+      margin-left: auto;
+      border-bottom-right-radius: 5px;
+      border: 1px solid rgba(76, 175, 80, 0.3);
+    }
+
+    .ai-message {
+      background: rgba(255, 255, 255, 0.2);
+      margin-right: auto;
+      border-bottom-left-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .chat-input-container {
+      display: flex;
+      gap: 15px;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 15px;
+      border-radius: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      font-size: 16px;
+      resize: none;
+      transition: all 0.3s ease;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .chat-input:focus {
+      outline: none;
+      border-color: rgba(76, 175, 80, 0.5);
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .chat-input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .send-button {
+      padding: 15px 30px;
+      border-radius: 15px;
+      border: none;
+      background: #4CAF50;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Poppins', sans-serif;
+      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.2);
+    }
+
+    .send-button:hover {
+      background: #45a049;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
+    }
+
+    /* Custom scrollbar */
+    .chat-messages::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 5px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 5px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .khushu-stats {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .khushu-value {
+      font-size: 48px;
+      font-weight: bold;
+      color: #4CAF50;
+      margin: 20px 0;
+    }
+
+    .guidance-text {
+      text-align: center;
+      font-size: 18px;
+      margin: 20px 0;
+      color: #e0e0e0;
+    }
+
+    .begin-chat-button {
+      display: block;
+      margin: 30px auto;
+      max-width: 800px;
+      width: 100%;
+      padding: 15px 30px;
+      font-size: 18px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Poppins', sans-serif;
+      backdrop-filter: blur(5px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .begin-chat-button:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .begin-chat-button:active {
+      transform: translateY(1px);
     }
   </style>
 </head>
@@ -97,14 +302,16 @@
       </div>
     </header>
     <div class="content">
-      <h2>AI Assistance</h2>
-      <p>Get guidance and tips to improve your focus and Khushu during prayer.</p>
-      <textarea class="question-box" placeholder="During prayer I struggle with..."></textarea>
-      
-      <!-- Add the condition selector -->
-      <label for="condition" class="select-label">Select a personalized AI for neurological conditions:</label>
-      <select id="condition" class="condition-select">
-        <option value="">Choose a condition...</option>
+      <div id="khushu-stats" class="khushu-stats">
+        <h2>Your Average Khushu Index is:</h2>
+        <div id="khushu-value" class="khushu-value">Loading...</div>
+      </div>
+
+      <p class="guidance-text">Get guidance and tips to improve your focus and Khushu during prayer.</p>
+
+      <!-- Condition selector moved up -->
+      <label for="condition" class="select-label">Select your neurological conditions (hold Ctrl/Cmd to select multiple):</label>
+      <select id="condition" class="condition-select" multiple>
         <option value="adhd">ADHD - Attention Deficit Hyperactivity Disorder</option>
         <option value="autism">Autism Spectrum Disorder (ASD)</option>
         <option value="anxiety">Anxiety Disorders</option>
@@ -113,7 +320,26 @@
         <option value="general">General Focus Enhancement</option>
       </select>
 
-      <button class="ask-button">Submit</button>
+      <button id="beginChat" class="begin-chat-button">Begin Chat Now</button>
+
+      <!-- Chat container initially hidden -->
+      <div id="chatInterface" class="chat-container" style="display: none;">
+        <div class="chat-header">
+          <span class="zoom-controls">
+            <button class="zoom-button" onclick="adjustFontSize(-1)">A-</button>
+            <button class="zoom-button" onclick="adjustFontSize(1)">A+</button>
+          </span>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+          <!-- Messages will be inserted here -->
+        </div>
+        <div class="chat-input-container">
+          <textarea class="chat-input" id="chatInput" placeholder="Type your message..." rows="3"></textarea>
+          <button class="send-button" id="sendButton">
+            <span>Send</span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -146,6 +372,111 @@
         questionBox.placeholder = "During prayer I struggle with...";
       }
     });
+
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const sendButton = document.getElementById('sendButton');
+
+    let currentFontSize = 16;
+    const MIN_FONT_SIZE = 12;
+    const MAX_FONT_SIZE = 24;
+
+    function adjustFontSize(change) {
+      currentFontSize = Math.min(Math.max(currentFontSize + change, MIN_FONT_SIZE), MAX_FONT_SIZE);
+      document.querySelectorAll('.message').forEach(msg => {
+        msg.style.fontSize = `${currentFontSize}px`;
+      });
+    }
+
+    function addMessage(message, isUser = false) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+      messageDiv.style.fontSize = `${currentFontSize}px`;
+      
+      // Convert URLs to clickable links
+      const linkedMessage = message.replace(
+        /(https?:\/\/[^\s]+)/g, 
+        '<a href="$1" target="_blank" style="color: #4CAF50;">$1</a>'
+      );
+      
+      messageDiv.innerHTML = linkedMessage;
+      chatMessages.appendChild(messageDiv);
+      
+      // Scroll to the new message
+      messageDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+
+    async function sendMessage() {
+      const message = chatInput.value.trim();
+      const selectedOptions = Array.from(document.getElementById('condition').selectedOptions);
+      const conditions = selectedOptions.map(option => option.value);
+      
+      if (message) {
+        addMessage(message, true);
+        chatInput.value = '';
+
+        try {
+          const response = await fetch('http://localhost:5001/api/chat', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              message: message,
+              conditions: conditions
+            })
+          });
+
+          const data = await response.json();
+          
+          if (data.status === 'success' && data.response) {
+            addMessage(data.response);
+          } else {
+            addMessage('Sorry, I encountered an error. Please try again.');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          addMessage('Sorry, I encountered an error. Please try again.');
+        }
+      }
+    }
+
+    sendButton.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Make chat input auto-expand
+    chatInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
+    });
+
+    // Fetch and display Khushu index when page loads
+    async function fetchKhushuIndex() {
+      try {
+        const response = await fetch('http://localhost:5001/api/khushu-index');
+        const data = await response.json();
+        if (data.average_index) {
+          document.getElementById('khushu-value').textContent = data.average_index;
+        }
+      } catch (error) {
+        console.error('Error fetching Khushu index:', error);
+        document.getElementById('khushu-value').textContent = 'Error loading index';
+      }
+    }
+
+    // Show chat interface when "Begin Chat" is clicked
+    document.getElementById('beginChat').addEventListener('click', function() {
+      document.getElementById('chatInterface').style.display = 'block';
+      this.style.display = 'none'; // Hide the begin chat button
+    });
+
+    // Load Khushu index when page loads
+    document.addEventListener('DOMContentLoaded', fetchKhushuIndex);
   </script>
 </body>
 </html>

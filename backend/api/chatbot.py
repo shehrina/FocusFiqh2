@@ -29,22 +29,49 @@ def analyze_kushu_index(kushu_index, aspect):
         logging.error(f"Error during khushu index analysis: {e}")
         return None
 
-def generate_response(text):
+def generate_response(text, conditions=None):
     try:
-        print(f"Generating response for user question: {text}")  
+        print(f"Generating response for user question: {text}, Conditions: {conditions}")
+        
+        # Get the user's khushu index
+        khushu_index = get_average_khushu_index()
+        
+        # Customize system message based on conditions and khushu index
+        system_message = (
+            "You are an expert in Islamic spiritual mindfulness and prayer, specializing in helping individuals "
+            "with various conditions maintain focus during prayer. "
+        )
+        
+        if conditions and len(conditions) > 0:
+            conditions_str = ", ".join(conditions)
+            system_message += (
+                f"\nThe user has the following conditions: {conditions_str}. "
+                "Consider how these conditions interact and affect their prayer experience. "
+            )
+        
+        system_message += (
+            f"\nThe user's current Khushu (spiritual focus) index is {khushu_index}. "
+            "Based on this score and their conditions, provide specific, actionable advice that: "
+            "\n1. Addresses their immediate question or concern"
+            "\n2. Takes into account their specific conditions and how they might affect their focus"
+            "\n3. Suggests practical techniques appropriate for their current khushu level"
+            "\n4. Offers encouragement based on their current progress"
+            "\nKeep responses concise but personalized."
+        )
+        
         response = client.chat.completions.create(
             model="gpt-4",
             messages=[ 
                 {
                     "role": "system", 
-                    "content": "You are a helpful assistant. Answer the user's question in a clear and concise manner."
+                    "content": system_message
                 },
                 {
                     "role": "user",
                     "content": text
                 }
             ],
-            max_tokens=150
+            max_tokens=250  # Increased token limit for more detailed responses
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
