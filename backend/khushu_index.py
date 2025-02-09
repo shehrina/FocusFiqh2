@@ -31,28 +31,31 @@ class KhushuMonitor:
         print("✅ Connected to EEG stream!")
         
         # Initialize CSV logging
-        self.test_number = 1
         self.csv_filename = "khushu_results.csv"
-        self.detailed_csv_filename = "current_session_details.csv"
-        self.max_tests = 10
+        self.detailed_csv_filename = "detailed_session.csv"  # Single file for all sessions
         
-        # Get the last test number from CSV
+        # Get the last test number from CSV FIRST
         try:
             if os.path.exists(self.csv_filename):
                 with open(self.csv_filename, 'r') as f:
                     lines = f.readlines()
                     if len(lines) > 1:  # If there are any results
                         last_line = lines[-1]
-                        last_test_num = int(last_line.split(',')[0].split()[1])
+                        # Extract just the number from "Test X"
+                        last_test_num = int(last_line.split(',')[0].split()[-1])
                         self.test_number = last_test_num + 1
                     else:
                         self.test_number = 1
             else:
                 self.test_number = 1
+                # Create file with headers if it doesn't exist
+                with open(self.csv_filename, 'w', newline='') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(['Test Number', 'Average Khushu Index'])
         except Exception as e:
             print(f"Warning: Could not read last test number: {e}")
             self.test_number = 1
-        
+            
         # Channel indices for Muse 2
         self.channels = {
             'TP9': 0,
@@ -243,12 +246,6 @@ class KhushuMonitor:
         """Save average khushu index to CSV file"""
         avg_khushu = mean(self.khushu_values) if self.khushu_values else 0
         
-        # Create CSV with headers if it doesn't exist
-        if not os.path.exists(self.csv_filename):
-            with open(self.csv_filename, 'w', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow(['Test Number', 'Average Khushu Index'])
-        
         # Append results
         with open(self.csv_filename, 'a', newline='') as f:
             writer = csv.writer(f)
@@ -256,7 +253,7 @@ class KhushuMonitor:
     
     def save_detailed_data_to_csv(self, current_time, powers, khushu_percentage):
         """Save detailed time-series data to CSV, overwriting previous session data"""
-        # If this is the first data point, create/overwrite the file with headers
+        # Always start with 'w' mode for the first data point to clear previous session
         if current_time == self.times[0]:  # First data point of the session
             mode = 'w'  # overwrite mode
         else:
@@ -265,10 +262,24 @@ class KhushuMonitor:
         with open(self.detailed_csv_filename, mode, newline='') as f:
             writer = csv.writer(f)
             if mode == 'w':  # Only write headers when creating new file
-                writer.writerow(['Time (s)', 'Alpha Power', 'Khushu Index'])
+                writer.writerow([
+                    'time', 
+                    'DP',  # Delta Power
+                    'TP',  # Theta Power
+                    'AP',  # Alpha Power
+                    'BP',  # Beta Power
+                    'GP',  # Gamma Power
+                    'KI'   # Khushu Index
+                ])
+            
+            # Write the data row
             writer.writerow([
                 f'{current_time:.2f}',
+                f'{powers["delta"]:.2f}',
+                f'{powers["theta"]:.2f}',
                 f'{powers["alpha"]:.2f}',
+                f'{powers["beta"]:.2f}',
+                f'{powers["gamma"]:.2f}',
                 f'{khushu_percentage:.2f}'
             ])
     
@@ -286,7 +297,6 @@ class KhushuMonitor:
                 sample, timestamp = self.eeg_inlet.pull_sample(timeout=0.1)
                 current_time = time.time()
                 
-                # Check if we haven't received data for too long
                 if current_time - last_data_time > 2.0:
                     print("\n⚠️ No data received for 2 seconds. Check Muse connection!")
                 
@@ -303,9 +313,6 @@ class KhushuMonitor:
                     elapsed_time = current_time - start_time
                     self.times.append(elapsed_time)
                     
-                    # Save detailed data
-                    self.save_detailed_data_to_csv(elapsed_time, powers, khushu_percentage)
-                    
                     for band, power in powers.items():
                         if band not in self.band_values:
                             self.band_values[band] = []
@@ -313,7 +320,10 @@ class KhushuMonitor:
                     
                     self.khushu_values.append(khushu_percentage)
                     
-                    # Update feedback text with more detailed information
+                    # Save detailed data
+                    self.save_detailed_data_to_csv(elapsed_time, powers, khushu_percentage)
+                    
+                    # Update feedback text
                     feedback = f"Khushu Level: {khushu_percentage:.1f}%\n"
                     feedback += f"Alpha/Theta Ratio: {powers['alpha']/powers['theta']:.2f}\n"
                     
