@@ -1,14 +1,10 @@
 import logging
 from openai import OpenAI
 import os
-from dotenv import load_dotenv
-from openai import OpenAI
+import pandas as pd
 
-load_dotenv()
-
-openai_key = os.getenv("OPENAI_API_KEY")
-
-client = OpenAI(api_key=openai_key)
+# Initialize OpenAI client with API key directly
+client = OpenAI(api_key="")
 
 def analyze_kushu_index(kushu_index, aspect):
     try:
@@ -19,7 +15,7 @@ def analyze_kushu_index(kushu_index, aspect):
                 {
                     "role": "system",
                     "content": "You are an expert in Islamic spiritual mindfulness and prayer. Based on the provided khushu index, "
-                               "analyze how the user can improve their {aspect}. Provide actionable and practical advice from Sharia."
+                               "analyze how the user can improve their {aspect}. Provide actionable and practical advice from Sharia. However, keep it brief unless user mentions so."
                 },
                 {
                     "role": "user",
@@ -28,12 +24,10 @@ def analyze_kushu_index(kushu_index, aspect):
             ],
             max_tokens=150
         )
-        print(f"Response received: {response}")  # Debugging statement
         return response.choices[0].message.content.strip()
     except Exception as e:
         logging.error(f"Error during khushu index analysis: {e}")
         return None
-
 
 def generate_response(text):
     try:
@@ -52,17 +46,30 @@ def generate_response(text):
             ],
             max_tokens=150
         )
-        print(f"Response generated: {response}")  
         return response.choices[0].message.content.strip()
     except Exception as e:
         logging.error(f"Error generating response: {e}")
         return None
 
+def get_average_khushu_index():
+    try:
+        csv_path = os.path.join(os.path.dirname(os.getcwd()), 'khushu_results.csv')
+        df = pd.read_csv(csv_path)
+        average_index = df['Average Khushu Index'].mean()
+        return round(average_index, 2)
+    except Exception as e:
+        logging.error(f"Error reading khushu index from CSV: {e}")
+        return None
 
 def chat_with_user():
     try:
-        kushu_index = input("Please enter your khushu index (e.g., 1-10): ")
-        aspect = input("Which aspect would you like to improve ? ")
+        kushu_index = get_average_khushu_index()
+        if not kushu_index:
+            print("Error reading khushu index from CSV file.")
+            return
+            
+        print(f"Your average khushu index based on historical data is: {kushu_index}")
+        aspect = input("Which aspect would you like to improve? ")
 
         khushu_advice = analyze_kushu_index(kushu_index, aspect)
         if khushu_advice:
@@ -81,5 +88,5 @@ def chat_with_user():
         logging.error(f"Error during user interaction: {e}")
         print("An error occurred, please try again.")
 
-
-chat_with_user()
+if __name__ == "__main__":
+    chat_with_user()
