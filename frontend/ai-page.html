@@ -48,10 +48,39 @@
     .dropdown-menu a:hover {
       background-color: #eee;
     }
+    /* Add styles for the dropdown */
+    .condition-select {
+      width: 100%;
+      max-width: 450px;
+      padding: 10px;
+      margin: 10px 0 20px;
+      border-radius: 20px;
+      border: none;
+      background: white;
+      color: #333;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .condition-select option {
+      padding: 10px;
+    }
+
+    .select-label {
+      display: block;
+      margin: 10px 0;
+      color: #e0e0e0;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
-  <div class="main-container">
+  <!-- Background Mat -->
+  <div class="background-mat"></div>
+  <div class="background-waves"></div>
+
+  <div class="container">
     <header>
       <div class="logo">
         <h1>Khushu</h1>
@@ -71,6 +100,19 @@
       <h2>AI Assistance</h2>
       <p>Get guidance and tips to improve your focus and Khushu during prayer.</p>
       <textarea class="question-box" placeholder="During prayer I struggle with..."></textarea>
+      
+      <!-- Add the condition selector -->
+      <label for="condition" class="select-label">Select a personalized AI for neurological conditions:</label>
+      <select id="condition" class="condition-select">
+        <option value="">Choose a condition...</option>
+        <option value="adhd">ADHD - Attention Deficit Hyperactivity Disorder</option>
+        <option value="autism">Autism Spectrum Disorder (ASD)</option>
+        <option value="anxiety">Anxiety Disorders</option>
+        <option value="ocd">Obsessive-Compulsive Disorder (OCD)</option>
+        <option value="sensory">Sensory Processing Sensitivity</option>
+        <option value="general">General Focus Enhancement</option>
+      </select>
+
       <button class="ask-button">Submit</button>
     </div>
   </div>
@@ -79,13 +121,29 @@
   <script>
     const menuIcon = document.getElementById('menuIcon');
     const dropdownMenu = document.getElementById('dropdownMenu');
+    
     menuIcon.addEventListener('click', function(event) {
       event.stopPropagation();
       dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
     });
+
     document.addEventListener('click', function(event) {
       if (!event.target.closest('.menu')) {
         dropdownMenu.style.display = 'none';
+      }
+    });
+
+    // Add condition selection handling
+    const conditionSelect = document.getElementById('condition');
+    conditionSelect.addEventListener('change', function() {
+      const selectedCondition = this.value;
+      const questionBox = document.querySelector('.question-box');
+      
+      // Optionally update placeholder based on selection
+      if (selectedCondition) {
+        questionBox.placeholder = `Share your prayer experience with ${selectedCondition.toUpperCase()}...`;
+      } else {
+        questionBox.placeholder = "During prayer I struggle with...";
       }
     });
   </script>

@@ -64,49 +64,11 @@
     .menu-icon {
       cursor: pointer;
     }
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.7);
-      z-index: 100;
+    .graph-toggle {
+      margin-bottom: 15px;
     }
-    .modal-content {
-      background: rgba(255,255,255,0.95);
-      margin: 5% auto;
-      padding: 20px;
-      width: 90%;
-      max-width: 800px;
-      border-radius: 10px;
-      color: #333;
-      max-height: 80vh;
-      overflow-y: auto;
-    }
-    .close-button {
-      float: right;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    #resultsTable {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    #resultsTable th, #resultsTable td {
-      padding: 8px;
-      text-align: right;
-      border-bottom: 1px solid #ddd;
-    }
-    #resultsTable th {
-      background: #8e44ad;
-      color: white;
-    }
-    #resultsTable tr:nth-child(even) {
-      background: rgba(142, 68, 173, 0.1);
+    #brainwaveContainer, #khushuContainer {
+      transition: opacity 0.3s ease;
     }
   </style>
 </head>
@@ -130,47 +92,28 @@
     </header>
     <div class="content">
       <h2>Live Demo</h2>
-      <p>Watch live graphs of your brain wave activity updating in real time.</p>
+      <p>Watch your Khushu Level updating in real time.</p>
       <!-- Add connection status indicator -->
       <div id="connectionStatus" style="margin-bottom: 10px; color: #666;"></div>
-      <!-- Container for the live graphs -->
+      <!-- Update the graph container -->
       <div id="liveGraph">
-        <!-- Khushu chart appears first -->
-        <canvas id="khushuChart"></canvas>
-        <!-- Brain Wave chart (Alpha only) is hidden by default -->
-        <canvas id="bandChart" style="margin-top:20px; display: none;"></canvas>
+        <div id="brainwaveContainer" style="display: none;">
+          <canvas id="brainwaveChart"></canvas>
+        </div>
+        <div id="khushuContainer">
+          <canvas id="khushuChart"></canvas>
+        </div>
       </div>
-      <!-- All control buttons in one row -->
+      <!-- Control buttons in one row -->
       <div class="all-buttons">
-        <button class="button" id="toggleGraph">Show Brain Waves</button>
         <button class="button" id="startButton">Start Demo</button>
         <button class="button" id="endButton" style="display:none;">End Demo</button>
-        <!-- This button will navigate to the results page -->
+        <button class="button" id="toggleGraph">Show Brain Waves</button>
         <button class="button" id="downloadCSV" style="display:none;">View Results</button>
         <button class="button" id="askChatBot" style="display:none;">Ask Chat Bot</button>
       </div>
-      <!-- Text feedback (showing Khushu Level, Alpha, Alpha/Theta Ratio, and time) -->
+      <!-- Text feedback -->
       <div id="feedback" style="margin-top:20px; font-size:16px;"></div>
-    </div>
-    <div id="resultsModal" class="modal" style="display:none;">
-      <div class="modal-content">
-        <span class="close-button">&times;</span>
-        <h2>Session Results</h2>
-        <table id="resultsTable">
-          <thead>
-            <tr>
-              <th>Time (s)</th>
-              <th>Delta</th>
-              <th>Theta</th>
-              <th>Alpha</th>
-              <th>Beta</th>
-              <th>Gamma</th>
-              <th>Khushu</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
     </div>
   </div>
 
@@ -191,18 +134,101 @@
     // Global variables and configuration
     let demoInterval;
     const pollingInterval = 100; // milliseconds between polls
-    const backendUrl = "https://c4db-129-100-255-31.ngrok-free.app"; // adjust if needed
 
     // Setup Chart.js charts
-    const bandCtx = document.getElementById('bandChart').getContext('2d');
+    const brainwaveCtx = document.getElementById('brainwaveChart').getContext('2d');
     const khushuCtx = document.getElementById('khushuChart').getContext('2d');
-
-    // Data arrays for the charts (shared time axis)
     let timeLabels = [];
-    let alphaData = [];
+    let brainwaveData = {
+      delta: [],
+      theta: [],
+      alpha: [],
+      beta: [],
+      gamma: []
+    };
     let khushuData = [];
 
-    // Chart for Khushu Level (displayed on top, more visible)
+    // Chart for Brain Waves
+    const brainwaveChart = new Chart(brainwaveCtx, {
+      type: 'line',
+      data: {
+        labels: timeLabels,
+        datasets: [
+          {
+            label: 'Delta',
+            data: brainwaveData.delta,
+            borderColor: 'blue',
+            borderWidth: 2,
+            fill: false
+          },
+          {
+            label: 'Theta',
+            data: brainwaveData.theta,
+            borderColor: 'cyan',
+            borderWidth: 2,
+            fill: false
+          },
+          {
+            label: 'Alpha',
+            data: brainwaveData.alpha,
+            borderColor: 'green',
+            borderWidth: 2,
+            fill: false
+          },
+          {
+            label: 'Beta',
+            data: brainwaveData.beta,
+            borderColor: 'yellow',
+            borderWidth: 2,
+            fill: false
+          },
+          {
+            label: 'Gamma',
+            data: brainwaveData.gamma,
+            borderColor: 'red',
+            borderWidth: 2,
+            fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        animation: false,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Brain Wave Activity',
+            color: '#fff'
+          }
+        },
+        scales: {
+          x: {
+            type: 'linear',
+            position: 'bottom',
+            title: {
+              display: true,
+              text: 'Time (s)',
+              color: '#fff'
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Power (μV²)',
+              color: '#fff'
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            }
+          }
+        }
+      }
+    });
+
+    // Chart for Khushu Level
     const khushuChart = new Chart(khushuCtx, {
       type: 'line',
       data: {
@@ -219,79 +245,12 @@
       },
       options: {
         responsive: true,
-        title: { display: true, text: 'Khushu Level Over Time' },
-        scales: {
-          x: {
-            type: 'linear',
-            position: 'bottom',
-            title: { display: true, text: 'Time (s)' },
-            ticks: { callback: value => Math.floor(value) }
-          },
-          y: {
-            min: 0,
-            max: 100,
-            title: { display: true, text: 'Percentage (%)' }
-          }
-        }
-      }
-    });
-
-    // Chart for Brain Wave (Alpha channel only)
-    const bandChart = new Chart(bandCtx, {
-      type: 'line',
-      data: {
-        labels: timeLabels,
-        datasets: [
-          { 
-            label: 'Delta', 
-            data: [], 
-            borderColor: 'blue',
-            fill: false,
-            tension: 0.4  // Add some smoothing
-          },
-          { 
-            label: 'Theta', 
-            data: [], 
-            borderColor: 'cyan',
-            fill: false,
-            tension: 0.4
-          },
-          { 
-            label: 'Alpha', 
-            data: [], 
-            borderColor: 'green',
-            fill: false,
-            tension: 0.4
-          },
-          { 
-            label: 'Beta', 
-            data: [], 
-            borderColor: 'yellow',
-            fill: false,
-            tension: 0.4
-          },
-          { 
-            label: 'Gamma', 
-            data: [], 
-            borderColor: 'red',
-            fill: false,
-            tension: 0.4
-          }
-        ]
-      },
-      options: {
-        responsive: true,
         animation: false,
         plugins: {
           title: { 
             display: true, 
-            text: 'Brain Wave Bands Over Time',
+            text: 'Khushu Level Over Time',
             color: '#fff'
-          },
-          legend: {
-            labels: {
-              color: '#fff'
-            }
           }
         },
         scales: {
@@ -303,25 +262,16 @@
               text: 'Time (s)',
               color: '#fff'
             },
-            ticks: { 
-              maxTicksLimit: 10,
-              color: '#fff'
-            },
             grid: {
               color: 'rgba(255, 255, 255, 0.1)'
             }
           },
           y: {
-            type: 'logarithmic', // Changed back to logarithmic for better visualization of large values
+            min: 0,
+            max: 100,
             title: { 
               display: true, 
-              text: 'Power',
-              color: '#fff'
-            },
-            min: 1000,  // Adjusted minimum value
-            max: 50000, // Adjusted maximum value
-            ticks: { 
-              maxTicksLimit: 8,
+              text: 'Percentage (%)',
               color: '#fff'
             },
             grid: {
@@ -335,273 +285,147 @@
     async function fetchData() {
       const statusElement = document.getElementById('connectionStatus');
       try {
-        statusElement.innerHTML = 'Fetching data...';
-        const response = await fetch(`${backendUrl}/`, {
-          headers: {
-            'ngrok-skip-browser-warning': 'true'
-          }
-        });
+        const response = await fetch('../backend/detailed_session.csv');
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const text = await response.text();
-        if (!text.trim()) {
-          console.log("Received empty data");
-          statusElement.innerHTML = 'Waiting for data...';
-          return;
-        }
-
-        // Parse CSV data
         const lines = text.trim().split('\n');
-        if (lines.length === 0) {
-          console.log("No data lines found");
-          return;
-        }
+        if (lines.length <= 1) return;  // Skip if only header
 
-        // Process each new line of data
-        lines.forEach(line => {
-          const values = line.split(',').map(val => parseFloat(val.trim()));
-          if (values.length !== 7) {
-            console.warn("Invalid data line:", line);
-            return;
-          }
+        // Clear existing data
+        timeLabels = [];
+        brainwaveData = {
+          delta: [],
+          theta: [],
+          alpha: [],
+          beta: [],
+          gamma: []
+        };
+        khushuData = [];
 
-          const [time, delta, theta, alpha, beta, gamma, khushu] = values;
-          console.log("Processing values:", { time, delta, theta, alpha, beta, gamma, khushu }); // Debug log
-
-          // Add new data points
-          timeLabels.push(time);
-          khushuData.push(khushu);
+        // Process all lines except header
+        const dataLines = lines.slice(1);
+        dataLines.forEach(line => {
+          const [time, delta, theta, alpha, beta, gamma, khushu] = line.split(',').map(val => parseFloat(val.trim()));
           
-          // Update brain wave data
-          bandChart.data.datasets[0].data.push(delta);
-          bandChart.data.datasets[1].data.push(theta);
-          bandChart.data.datasets[2].data.push(alpha);
-          bandChart.data.datasets[3].data.push(beta);
-          bandChart.data.datasets[4].data.push(gamma);
-
-          // Keep only last 30 points for better visualization
-          const maxPoints = 30;
-          if (timeLabels.length > maxPoints) {
-            timeLabels.shift();
-            khushuData.shift();
-            bandChart.data.datasets.forEach(dataset => dataset.data.shift());
-          }
+          timeLabels.push(time);
+          brainwaveData.delta.push(delta);
+          brainwaveData.theta.push(theta);
+          brainwaveData.alpha.push(alpha);
+          brainwaveData.beta.push(beta);
+          brainwaveData.gamma.push(gamma);
+          khushuData.push(khushu);
         });
 
-        // Update the charts configuration
-        bandChart.options = {
-          responsive: true,
-          animation: false,
-          plugins: {
-            title: { 
-              display: true, 
-              text: 'Brain Wave Bands Over Time',
-              color: '#fff'
-            },
-            legend: {
-              labels: {
-                color: '#fff'
-              }
-            }
-          },
-          scales: {
-            x: {
-              type: 'linear',
-              position: 'bottom',
-              title: { 
-                display: true, 
-                text: 'Time (s)',
-                color: '#fff'
-              },
-              ticks: { 
-                color: '#fff'
-              },
-              grid: {
-                color: 'rgba(255, 255, 255, 0.1)'
-              }
-            },
-            y: {
-              type: 'linear', // Changed to linear scale
-              title: { 
-                display: true, 
-                text: 'Power',
-                color: '#fff'
-              },
-              min: 0,
-              suggestedMax: 50000,
-              ticks: { 
-                color: '#fff'
-              },
-              grid: {
-                color: 'rgba(255, 255, 255, 0.1)'
-              }
-            }
-          }
-        };
+        // Update both charts
+        brainwaveChart.data.labels = timeLabels;
+        brainwaveChart.data.datasets[0].data = brainwaveData.delta;
+        brainwaveChart.data.datasets[1].data = brainwaveData.theta;
+        brainwaveChart.data.datasets[2].data = brainwaveData.alpha;
+        brainwaveChart.data.datasets[3].data = brainwaveData.beta;
+        brainwaveChart.data.datasets[4].data = brainwaveData.gamma;
+        brainwaveChart.update('none');
 
-        // Update chart data
-        bandChart.data.labels = timeLabels;
         khushuChart.data.labels = timeLabels;
         khushuChart.data.datasets[0].data = khushuData;
+        khushuChart.update('none');
 
-        // Force charts to update
-        bandChart.update();
-        khushuChart.update();
-
+        // Update status and feedback
+        statusElement.innerHTML = 'Data loaded';
+        statusElement.style.color = '#4CAF50';
+        
         // Update feedback with latest values
-        const lastIndex = timeLabels.length - 1;
-        if (lastIndex >= 0) {
-          document.getElementById('feedback').innerHTML = '';
-          statusElement.innerHTML = 'Connected - Receiving data';
-          statusElement.style.color = '#4CAF50';
-        }
+        const latestKhushu = khushuData[khushuData.length - 1];
+        const feedback = document.getElementById('feedback');
+        feedback.innerHTML = `Khushu Level: ${latestKhushu.toFixed(1)}%<br>${getKhushuFeedback(latestKhushu)}`;
+        
       } catch (error) {
-        console.error("Error fetching data:", error);
-        statusElement.innerHTML = 'Connection error - Retrying...';
+        console.error("Error:", error);
+        statusElement.innerHTML = 'Error loading data';
         statusElement.style.color = '#f44336';
       }
+    }
+
+    // Helper function for feedback text
+    function getKhushuFeedback(khushuLevel) {
+      if (khushuLevel >= 90) return "Exceptional spiritual focus!";
+      if (khushuLevel >= 75) return "Excellent focus";
+      if (khushuLevel >= 60) return "Good focus!";
+      if (khushuLevel >= 40) return "Moderate focus";
+      return "Mind may be wandering...";
     }
 
     // When starting the demo, clear and initialize the charts
     async function startDemo() {
       try {
-        // Disable start button while request is in progress
-        const startButton = document.getElementById('startButton');
-        startButton.disabled = true;
-        
-        const response = await fetch('../backend/start_demo', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to start demo');
-        }
-
-        // Show end button and hide start button
-        startButton.style.display = 'none';
+        document.getElementById('startButton').style.display = 'none';
         document.getElementById('endButton').style.display = 'inline-block';
         
-        // Clear all data arrays
-        timeLabels = [];
-        khushuData = [];
-        bandChart.data.datasets.forEach(dataset => {
-          dataset.data = [];
-        });
-        
-        // Update both charts
-        bandChart.update();
-        khushuChart.update();
-        
-        // Start polling for new data
+        // Start polling for new data every second
         if (demoInterval) {
           clearInterval(demoInterval);
         }
-        demoInterval = setInterval(fetchData, pollingInterval);
+        demoInterval = setInterval(fetchData, 1000);
+        
+        // Fetch initial data
+        await fetchData();
       } catch (error) {
-        console.error("Error starting demo:", error);
-        alert("Failed to start demo. Please try again.");
-        // Re-enable start button on error
-        document.getElementById('startButton').disabled = false;
+        console.error("Error:", error);
+        alert("Failed to start demo");
       }
     }
 
     async function endDemo() {
-      try {
-        const response = await fetch(`${backendUrl}/end_demo`, { method: 'POST' });
-        const data = await response.json();
-        console.log("Demo ended:", data);
-      } catch (error) {
-        console.error("Error ending demo:", error);
-      }
       clearInterval(demoInterval);
       document.getElementById('startButton').style.display = 'inline-block';
       document.getElementById('endButton').style.display = 'none';
       document.getElementById('feedback').innerHTML = '';
+      
       // Save final overall Khushu level to localStorage
       const finalKhushu = khushuData[khushuData.length - 1] || 0;
       localStorage.setItem("overallKhushu", finalKhushu);
-      // Show post-demo buttons (for our purposes, the "downloadCSV" button will navigate to the results page)
+      
+      // Show post-demo buttons
       document.getElementById('downloadCSV').style.display = 'inline-block';
       document.getElementById('askChatBot').style.display = 'inline-block';
-    }
-
-    // Toggle between charts
-    function toggleGraph() {
-      const khushuCanvas = document.getElementById('khushuChart');
-      const bandCanvas = document.getElementById('bandChart');
-      const toggleButton = document.getElementById('toggleGraph');
-      if (khushuCanvas.style.display !== 'none') {
-        khushuCanvas.style.display = 'none';
-        bandCanvas.style.display = 'block';
-        toggleButton.textContent = 'Show Khushu Level';
-      } else {
-        khushuCanvas.style.display = 'block';
-        bandCanvas.style.display = 'none';
-        toggleButton.textContent = 'Show Brain Waves';
-      }
     }
 
     // Event listeners
     document.getElementById('startButton').addEventListener('click', startDemo);
     document.getElementById('endButton').addEventListener('click', endDemo);
-    document.getElementById('toggleGraph').addEventListener('click', toggleGraph);
-    // Instead of downloading CSV, the "downloadCSV" button now navigates to the Khushu Level page
-    document.getElementById('downloadCSV').addEventListener('click', async () => {
-      const modal = document.getElementById('resultsModal');
-      const tbody = document.querySelector('#resultsTable tbody');
-      tbody.innerHTML = ''; // Clear existing data
-      
-      try {
-        const response = await fetch(`${backendUrl}/`, {
-          headers: {
-            'ngrok-skip-browser-warning': 'true'
-          }
-        });
-        const text = await response.text();
-        
-        // Parse CSV and create table rows
-        const lines = text.trim().split('\n');
-        lines.forEach(line => {
-          const [time, delta, theta, alpha, beta, gamma, khushu] = line.split(',');
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${parseFloat(time).toFixed(2)}</td>
-            <td>${parseFloat(delta).toFixed(2)}</td>
-            <td>${parseFloat(theta).toFixed(2)}</td>
-            <td>${parseFloat(alpha).toFixed(2)}</td>
-            <td>${parseFloat(beta).toFixed(2)}</td>
-            <td>${parseFloat(gamma).toFixed(2)}</td>
-            <td>${parseFloat(khushu).toFixed(2)}%</td>
-          `;
-          tbody.appendChild(row);
-        });
-        
-        modal.style.display = 'block';
-      } catch (error) {
-        console.error('Error loading results:', error);
-        alert('Error loading results. Please try again.');
-      }
+    document.getElementById('downloadCSV').addEventListener('click', () => {
+      window.location.href = 'khushu-level.html';
     });
     document.getElementById('askChatBot').addEventListener('click', () => {
       alert('Chat Bot clicked!');
     });
 
-    // Close modal when clicking the X or outside
-    document.querySelector('.close-button').addEventListener('click', () => {
-      document.getElementById('resultsModal').style.display = 'none';
-    });
-    window.addEventListener('click', (event) => {
-      const modal = document.getElementById('resultsModal');
-      if (event.target === modal) {
-        modal.style.display = 'none';
+    // Add toggle functionality
+    function toggleGraph() {
+      const brainwaveContainer = document.getElementById('brainwaveContainer');
+      const khushuContainer = document.getElementById('khushuContainer');
+      const toggleButton = document.getElementById('toggleGraph');
+      
+      if (brainwaveContainer.style.display === 'none') {
+        brainwaveContainer.style.display = 'block';
+        khushuContainer.style.display = 'none';
+        toggleButton.textContent = 'Show Khushu Level';
+      } else {
+        brainwaveContainer.style.display = 'none';
+        khushuContainer.style.display = 'block';
+        toggleButton.textContent = 'Show Brain Waves';
       }
-    });
+      
+      // Force charts to resize properly
+      brainwaveChart.resize();
+      khushuChart.resize();
+    }
+
+    // Add event listener for toggle button
+    document.getElementById('toggleGraph').addEventListener('click', toggleGraph);
   </script>
 </body>
 </html>

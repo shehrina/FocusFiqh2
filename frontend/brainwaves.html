@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brain Waves</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/live-styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="background-mat"></div>
+  <div class="background-waves"></div>
+  <div class="main-container">
+    <header>
+      <div class="logo"><h1>Brain Waves</h1></div>
+      <div class="menu">
+        <span class="menu-icon" id="menuIcon">☰</span>
+        <div class="dropdown-menu" id="dropdownMenu">
+          <a href="index.html">Home</a>
+          <a href="live.html">Khushu Level</a>
+          <a href="brainwaves.html">Brain Waves</a>
+          <a href="ai-page.html">Ask AI</a>
+        </div>
+      </div>
+    </header>
+    <div class="content">
+      <h2>Brain Wave Activity</h2>
+      <p>Watch your brain wave bands updating in real time.</p>
+      <div id="connectionStatus" style="margin-bottom: 10px; color: #666;"></div>
+      <div id="liveGraph">
+        <canvas id="bandChart"></canvas>
+      </div>
+      <div class="all-buttons">
+        <button class="button" id="startButton">Start Demo</button>
+        <button class="button" id="endButton" style="display:none;">End Demo</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Same fetchData and chart setup code as before, but only for bandChart
+    const bandCtx = document.getElementById('bandChart').getContext('2d');
+    let timeLabels = [];
+
+    const bandChart = new Chart(bandCtx, {
+      type: 'line',
+      data: {
+        labels: timeLabels,
+        datasets: [
+          { label: 'Delta', data: [], borderColor: 'blue', fill: false },
+          { label: 'Theta', data: [], borderColor: 'cyan', fill: false },
+          { label: 'Alpha', data: [], borderColor: 'green', fill: false },
+          { label: 'Beta', data: [], borderColor: 'yellow', fill: false },
+          { label: 'Gamma', data: [], borderColor: 'red', fill: false }
+        ]
+      },
+      options: {
+        responsive: true,
+        animation: false,
+        plugins: {
+          title: { 
+            display: true, 
+            text: 'Brain Wave Bands Over Time',
+            color: '#fff'
+          },
+          legend: {
+            labels: { color: '#fff' }
+          }
+        },
+        scales: {
+          x: {
+            type: 'linear',
+            position: 'bottom',
+            title: { 
+              display: true, 
+              text: 'Time (s)',
+              color: '#fff'
+            },
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            }
+          },
+          y: {
+            type: 'linear',
+            title: { 
+              display: true, 
+              text: 'Power',
+              color: '#fff'
+            },
+            min: 0,
+            max: 60000,
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)'
+            }
+          }
+        }
+      }
+    });
+
+    // Global variables
+    let demoInterval;
+    const pollingInterval = 1000; // milliseconds between polls
+
+    async function fetchData() {
+      const statusElement = document.getElementById('connectionStatus');
+      try {
+        statusElement.innerHTML = 'Fetching data...';
+        
+        // Fetch the CSV file directly
+        const response = await fetch('../backend/detailed_session.csv');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const text = await response.text();
+        
+        // Parse CSV data
+        const lines = text.trim().split('\n');
+        if (lines.length <= 1) return;  // Skip if only header
+
+        // Clear existing data
+        timeLabels = [];
+        bandChart.data.datasets.forEach(dataset => {
+          dataset.data = [];
+        });
+
+        // Process all lines except header
+        const dataLines = lines.slice(1);
+        dataLines.forEach(line => {
+          const [time, delta, theta, alpha, beta, gamma] = line.split(',').map(val => parseFloat(val.trim()));
+          
+          timeLabels.push(time);
+          
+          // Update brain wave data
+          bandChart.data.datasets[0].data.push(delta);
+          bandChart.data.datasets[1].data.push(theta);
+          bandChart.data.datasets[2].data.push(alpha);
+          bandChart.data.datasets[3].data.push(beta);
+          bandChart.data.datasets[4].data.push(gamma);
+        });
+
+        // Update chart
+        bandChart.data.labels = timeLabels;
+        bandChart.update('none');
+
+        // Update status
+        statusElement.innerHTML = 'Data loaded';
+        statusElement.style.color = '#4CAF50';
+        
+      } catch (error) {
+        console.error("Error:", error);
+        statusElement.innerHTML = 'Error loading data';
+        statusElement.style.color = '#f44336';
+      }
+    }
+
+    async function startDemo() {
+      try {
+        document.getElementById('startButton').style.display = 'none';
+        document.getElementById('endButton').style.display = 'inline-block';
+        
+        // Start polling for new data
+        if (demoInterval) {
+          clearInterval(demoInterval);
+        }
+        demoInterval = setInterval(fetchData, pollingInterval);
+        
+        // Fetch initial data
+        await fetchData();
+      } catch (error) {
+        console.error("Error:", error);
+        alert("Failed to start demo");
+      }
+    }
+
+    function endDemo() {
+      clearInterval(demoInterval);
+      document.getElementById('startButton').style.display = 'inline-block';
+      document.getElementById('endButton').style.display = 'none';
+    }
+
+    // Add menu toggle functionality
+    const menuIcon = document.getElementById('menuIcon');
+    const dropdownMenu = document.getElementById('dropdownMenu');
+    menuIcon.addEventListener('click', () => {
+      dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+    });
+
+    // Close the dropdown if clicking outside the menu
+    document.addEventListener('click', function(event) {
+      if (!event.target.closest('.menu')) {
+        dropdownMenu.style.display = 'none';
+      }
+    });
+
+    // Event listeners for demo controls
+    document.getElementById('startButton').addEventListener('click', startDemo);
+    document.getElementById('endButton').addEventListener('click', endDemo);
+  </script>
+</body>
+</html> 
