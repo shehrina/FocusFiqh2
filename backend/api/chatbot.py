@@ -28,7 +28,7 @@ def analyze_kushu_index(kushu_index, aspect):
             ],
             max_tokens=150
         )
-        print(f"Response received: {response}")  
+        print(f"Response received: {response}")  # Debugging statement
         return response.choices[0].message.content.strip()
     except Exception as e:
         logging.error(f"Error during khushu index analysis: {e}")
