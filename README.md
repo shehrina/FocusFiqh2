@@ -136,6 +136,8 @@ khushu/
 - Focus level trends and patterns
 - Exportable session data
 
+https://www.youtube.com/watch?v=eJsyAqBAd58
+
 
 ## Acknowledgments
 - Muse by InteraXon for EEG hardware
